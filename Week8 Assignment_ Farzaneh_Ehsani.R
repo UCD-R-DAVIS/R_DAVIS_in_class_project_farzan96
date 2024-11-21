@@ -10,14 +10,15 @@ mloa <- read_csv("https://raw.githubusercontent.com/gge-ucd/R-DAVIS/master/data/
   
   mutate(datetime=as.POSIXct(paste(year, month, day, hour24, min),
                              format = "%Y %m %d %H %M",
-                             tz = "GMT"),
-         datetimeLocal = with_tz(datetime, tzone = "Pacific/Honolulu")) %>% 
-  group_by(hour24, month) %>% 
-  summarize(mean_hourly_temp = mean(temp_C_2m)) %>% 
-  ggplot(aes(x = month, y = mean_hourly_temp, color=hour24)) +
-  geom_point(size = 2) +
-  scale_color_viridis_d()+
+                             tz = "UTC")) 
+mutate(mloa, datetimeLocal = with_tz(datetime, tzone = "Pacific/Honolulu")) %>% 
+    mutate(local_month= month(datetimeLocal,label = TRUE),
+      local_hour= hour(datetimeLocal)) %>% 
+    
+  group_by(local_month, local_hour) %>% 
+  summarize(mean_hourly_temp = mean(temp_C_2m, na.rm=TRUE)) %>% 
+  ggplot(aes(x = local_month, y = mean_hourly_temp, color=local_hour)) +
+  geom_point(aes(col = local_hour)) +
+  scale_color_viridis_c()+
   theme_classic()
-# I don't know why it plots nothing!
-# I have to check the code a couple of times.
-
+# It is a better coding, but still differs from the intended graph
